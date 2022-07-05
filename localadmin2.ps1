@@ -2,11 +2,11 @@
 .Synopsis
     Script to allow time-limited assignment of domain user to the group/s on local computer
 .Description
-    Can be run both by pasting the code with hardcoded values, as well as running the script with attributes attached. In such cases, include quotation marks at start and end of each value. The script checks the date value in the access.ini file, hidden in the username path within the operation system. Please, note, the deletion of the access.ini file will cause new creation with rights used in the attributes of the called script. If it is required to revoke the access to the user earlier, simply go to the access.ini file, and change the date-time value to some earlier and run the script again. Eventually, you can manualy remove the membership from GUI of MMC or by Powershell commandlet. The run of script always checks the time granted. If it got already expired, the user will be removed from the group. The resolution of the accounts to be provided the membership is based on the username profile path.
+    Can be run both by pasting the code with hardcoded values, as well as running the script with attributes attached. In such cases, include quotation marks at start and end of each value. The script checks the date value in the access.ini file, hidden in the username path within the operation system. Please, note, the deletion of the access.ini file will cause new creation with rights used in the attributes of the called script. If it is required to revoke the access to the user earlier, simply go to the access.ini file, and change the date-time value to some earlier and run the script again. Eventually, you can manualy remove the membership from GUI of MMC or by Powershell commandlet. The run of script always checks the time granted. If it got already expired, the user will be removed from the group. The resolution of the accounts to be provided the membership is based on the username profile path. Scheduled Task calls the file stored in public folder, because of rights needed, and not to allow users to screw it up. The batch file is built on each time from scratch based on the attributes provided to the script.
 .Example
     run the script in PS console like this:
     localadmin2.ps1 "jdoe" "Administrators" "2"
-    Calling of the script like that, will grant to the domain user jdoe the membership in local Administrators group for 2 days (or till the next check of the time granted in the access.ini file).
+    Calling of the script like that, will grant to the domain user jdoe the membership in local Administrators group for 2 days, and also creates new Scheduled Task for check on each logon to the system, if the granted time already passed. The script also remove the Scheduled Task once the local administrator privileges got removed after the given time.
 .INPUTS
     Username in the format like "jdoe" (the domain is hardcoded in the code).
     Local group, to be assigned the membership to, in the format like "Administrators" or "Administradores".
@@ -35,29 +35,29 @@
                                                                                                                                                              *#####*                                    
                                                                                                                                                             *####*                                      
 #>
-if($args){
-    $user = $args[0];
+if($args){ #if the script is called with attributes, create the variables
+    $user = $args[0]; #just username, domain is configured further below
     $group = $args[1];
     $days = $args[2];
-} else {
+} else { #without attributes, use default values
     $user = "jan"; #"jdoe";
     $group = "Administrators"; #Administradores
     $days = 2;
 }
-$domain = "qontigo";
+$domain = "qontigo"; #the name of the domain, so it is possible to use it later in the format like qontigo\jdoe
 $DateFormat = 'dd.MM.yyyy HH:mm:ss';
 $CurrentDate = Get-Date -Format $DateFormat;
-$file = "C:\Users\$user\access.ini";
 $batpath = "C:\Users\Public\locadm.bat";
 $taskname = "AdminRemoval";
-$ThisScriptPath = $MyInvocation.MyCommand.Path;
+$ThisScriptPath = $MyInvocation.MyCommand.Path; #grabs the full path to this script - use in Scheduled Task creation
+$file = "C:\Users\$user\access.ini"; #where will be stored the file with the date limit for group membership
 $CheckExists = Test-Path -Path $file -PathType Leaf;
 if($CheckExists -eq "True"){
     $FileTime1 = Get-Content $file -Raw;$FileTime = Get-Date -Date $FileTime1 -Format $DateFormat;
     if($CurrentDate -ge $FileTime){
-        Write-host "Remove-LocalGroupMember -Group ""$group"" -Member ""$domain\$user"";";
+        Write-host "Remove-LocalGroupMember -Group ""$group"" -Member ""$domain\$user"";"; #just info at console, might be removed
         Remove-LocalGroupMember -Group "$group" -Member "$user";
-        Unregister-ScheduledTask -TaskName "$taskname" -Confirm:$false; #--cleanup of scheduled task
+        Unregister-ScheduledTask -TaskName "$taskname" -Confirm:$false; #cleanup of Scheduled Task
     }
 } else {
     $TimeLimit1 = (Get-Date).AddDays($days);$TimeLimit = Get-Date -Date $TimeLimit1 -Format $DateFormat;
