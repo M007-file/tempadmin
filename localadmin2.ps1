@@ -40,7 +40,7 @@ if($args){
     $group = $args[1];
     $days = $args[2];
 } else {
-    $user = "jan";#"jdoe";
+    $user = "jan"; #"jdoe";
     $group = "Administrators"; #Administradores
     $days = 2;
 }
@@ -49,30 +49,28 @@ $DateFormat = 'dd.MM.yyyy HH:mm:ss';
 $CurrentDate = Get-Date -Format $DateFormat;
 $file = "C:\Users\$user\access.ini";
 $batpath = "C:\Users\Public\locadm.bat";
+$taskname = "AdminRemoval";
+$ThisScriptPath = $MyInvocation.MyCommand.Path;
 $CheckExists = Test-Path -Path $file -PathType Leaf;
 if($CheckExists -eq "True"){
     $FileTime1 = Get-Content $file -Raw;$FileTime = Get-Date -Date $FileTime1 -Format $DateFormat;
     if($CurrentDate -ge $FileTime){
         Write-host "Remove-LocalGroupMember -Group ""$group"" -Member ""$domain\$user"";";
         Remove-LocalGroupMember -Group "$group" -Member "$user";
-        Unregister-ScheduledTask -TaskName "AdminRemoval" -Confirm:$false; #--cleanup of scheduled task
+        Unregister-ScheduledTask -TaskName "$taskname" -Confirm:$false; #--cleanup of scheduled task
     }
 } else {
     $TimeLimit1 = (Get-Date).AddDays($days);$TimeLimit = Get-Date -Date $TimeLimit1 -Format $DateFormat;
     Get-Date -Date $TimeLimit -Format $DateFormat;
     New-Item $file -ItemType File -Value "$TimeLimit" -Force;
     Write-host "Add-LocalGroupMember -Group ""$group"" -Member ""$domain\$user"";";
-    #Add-LocalGroupMember -Group "$group" -Member "$domain\$user";# --domain usage
-    Add-LocalGroupMember -Group "$group" -Member "$user";# --local account usage
-    Add-Content -Path $batpath -Value "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe C:\_DEV\Qontigo\localadmin2.ps1 ""$user"" ""$group"" ""$days"""
-
-
+    Add-LocalGroupMember -Group "$group" -Member "$user"; #Add-LocalGroupMember -Group "$group" -Member "$domain\$user";# --domain usage
+    Add-Content -Path $batpath -Value "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe $ThisScriptPath ""$user"" ""$group"" ""$days"""
     #configuration of new Scheduled Task to run on each logon - checking if the time-limit provided already passed
-    $taskname = "AdminRemoval";
     $taskdescription = "Runs the script for evaluation of the local administrators group membership";
     $action = New-ScheduledTaskAction -Execute "$batpath" `
     -Argument '-NoProfile -WindowStyle Hidden';
-    $trigger =  New-ScheduledTaskTrigger -AtLogon; #-Once #-DaysInterval 1 #-AtStartup -RandomDelay (New-TimeSpan -minutes 3);
+    $trigger =  New-ScheduledTaskTrigger -AtLogon;
     $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Minutes 2) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1);
     Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $taskname -Description $taskdescription -AsJob -Settings $settings -User "System";
 }
