@@ -12,28 +12,7 @@
     Local group, to be assigned the membership to, in the format like "Administrators" or "Administradores".
     The length of the membership of the group provided, defined in days "2".
 .OUTPUTS
-    To work as expected, it is required to uncomment the Powershell Commandlets, that will Add or Remove the user from the local group. Currently commented, not to cause any issues in OS.
-                                                                                                                                                                                                        
-                                                                                                                                                             (##/                                       
-                                                                                                                                                            .#####/                                     
-                                                                                                                                                              *#####*                                   
-                                                                                                                                                                /#####,                                 
-                                                                                                                                                                  /#####,                               
-                                                                                                                                                                    /#####,           ,((.              
-                   ,(##########*           ,(##########*        ###(          (##/  /#################*  ####        /##########(.         ,(#########(*              (#####.       *#####,             
-                 #####/,.  ,*#####.      (####/,.  ,*#####,     #####(        (##(   ******(###/*****,   ####     *#####/,..,*(###(      (####/,.  ,/#####.             (#####.   .#####/               
-               ,####           /###(   ,####.          /###(    #######(      (##(         (###,         ####    (###/                 *####.          (###/              (#####    ,#/                 
-               ####             (###*  ####             /###,   ###/ ####(    (##(         (###,         ####   *###/                  ###(             /###,               (####(                      
-               ###(             *###/ .###(             ,###*   ###/  .####(  (##(         (###,         ####   /###,     .#########, .###/             *###*               .#####(                     
-               (###*     ###*   ####.  (###.            ####.   ###/    .####(###(         (###,         ####   .###(           *###,  (###.            ####               ######    .                  
-                (####     ####(####.    #####         (####     ###/       ######(         (###,         ####    .####,         /###,   #####         (####              (#####.   .###/                
-                  (##############,        (##############.      ###/        .####(         (###,         ####      *###############.      (##############.             (#####.     ,#####/              
-                     ./(((((/*####            /(((((/,          ,((           .((.          /(/           ((.          */(((((/.             ./(((((/.               (#####          ,####,             
-                               ./*                                                                                                                                 (#####,                              
-                                                                                                                                                                 /#####,                                
-                                                                                                                                                               /#####,                                  
-                                                                                                                                                             *#####*                                    
-                                                                                                                                                            *####*                                      
+    To work as expected, it is required to uncomment the Powershell Commandlets, that will Add or Remove the user from the local group. Currently commented, not to cause any issues in OS.                                   
 #>
 if($args){ #if the script is called with attributes, create the variables
     $user = $args[0]; #just username, domain is configured further below
@@ -44,7 +23,7 @@ if($args){ #if the script is called with attributes, create the variables
     $group = "Administrators"; #Administradores
     $days = 2;
 }
-$domain = "qontigo"; #the name of the domain, so it is possible to use it later on, in the format like qontigo\doe.john
+$domain = "domain"; #the name of the domain, so it is possible to use it later on, in the format like qontigo\doe.john
 $CurrentDate = (Get-Date -Date ((Get-Date).DateTime) -UFormat %s);
 $batpath = "C:\Users\Public\locadm.bat";
 $taskname = "AdminRemoval";
