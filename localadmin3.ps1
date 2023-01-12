@@ -23,7 +23,7 @@ if($args){ #if the script is called with attributes, create the variables
     $group = "Administrators"; #Administradores
     $days = 2;
 }
-$domain = "domain"; #the name of the domain, so it is possible to use it later on, in the format like qontigo\doe.john
+$domain = "domain"; #the name of the domain, so it is possible to use it later on, in the format like domain\doe.john
 $CurrentDate = (Get-Date -Date ((Get-Date).DateTime) -UFormat %s);
 $batpath = "C:\Users\Public\locadm.bat";
 $taskname = "AdminRemoval";
